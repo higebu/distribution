@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"time"
 
 	"github.com/docker/distribution/context"
@@ -241,7 +242,11 @@ func (d *driver) Delete(ctx context.Context, subPath string) error {
 		return storagedriver.PathNotFoundError{Path: subPath}
 	}
 
-	err = os.RemoveAll(fullPath)
+	// Ignore error for nfs lock
+	err = filepath.Walk(fullPath, func(path string, info os.FileInfo, err error) error {
+		_ = os.Remove(path)
+		return nil
+	})
 	return err
 }
 
